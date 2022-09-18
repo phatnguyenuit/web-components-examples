@@ -10,7 +10,7 @@ class Square extends HTMLElement {
     // Always call super first in constructor
     super();
 
-    const shadow = this.attachShadow({mode: 'open'});
+    const shadow = this.attachShadow({ mode: 'open' });
 
     const div = document.createElement('div');
     const style = document.createElement('style');
@@ -33,6 +33,17 @@ class Square extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     console.log('Custom square element attributes changed.');
+    console.log(
+      JSON.stringify(
+        {
+          name,
+          oldValue,
+          newValue,
+        },
+        null,
+        2
+      )
+    );
     updateStyle(this);
   }
 }
@@ -50,41 +61,66 @@ function updateStyle(elem) {
   `;
 }
 
-const add = document.querySelector('.add');
-const update = document.querySelector('.update');
-const remove = document.querySelector('.remove');
+const addButton = document.querySelector('.add');
+const updateButton = document.querySelector('.update');
+const removeButton = document.querySelector('.remove');
+/** @type {HTMLButtonElement} */
+const adoptButton = document.querySelector('.adopt');
+
 let square;
 
-update.disabled = true;
-remove.disabled = true;
+updateButton.disabled = true;
+removeButton.disabled = true;
+adoptButton.disabled = true;
 
 function random(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-add.onclick = function() {
+const container = document.getElementById('custom-components');
+
+addButton.onclick = function () {
   // Create a custom square element
   square = document.createElement('custom-square');
   square.setAttribute('l', '100');
   square.setAttribute('c', 'red');
-  document.body.appendChild(square);
 
-  update.disabled = false;
-  remove.disabled = false;
-  add.disabled = true;
+  container.appendChild(square);
+
+  updateButton.disabled = false;
+  removeButton.disabled = false;
+  adoptButton.disabled = false;
+  addButton.disabled = true;
 };
 
-update.onclick = function() {
+updateButton.onclick = function () {
   // Randomly update square's attributes
   square.setAttribute('l', random(50, 200));
-  square.setAttribute('c', `rgb(${random(0, 255)}, ${random(0, 255)}, ${random(0, 255)})`);
+  square.setAttribute(
+    'c',
+    `rgb(${random(0, 255)}, ${random(0, 255)}, ${random(0, 255)})`
+  );
 };
 
-remove.onclick = function() {
+removeButton.onclick = function () {
   // Remove the square
-  document.body.removeChild(square);
+  container.removeChild(square);
 
-  update.disabled = true;
-  remove.disabled = true;
-  add.disabled = false;
+  updateButton.disabled = true;
+  removeButton.disabled = true;
+  adoptButton.disabled = true;
+  addButton.disabled = false;
 };
+
+/**
+ * Adopt Node
+ * https://developer.mozilla.org/en-US/docs/Web/API/Document/adoptNode
+ */
+adoptButton.addEventListener('click', function () {
+  const iframe = document.querySelector('iframe');
+
+  iframe.contentDocument.body.appendChild(document.adoptNode(square));
+
+  adoptButton.disabled = true;
+  removeButton.disabled = true;
+});
